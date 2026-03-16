@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Recuria — Business Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:         #F7F6F3;
+    --surface:    #FFFFFF;
+    --border:     #E8E5DF;
+    --border-md:  #D6D2CA;
+    --text-1:     #1C1916;
+    --text-2:     #6B6560;
+    --text-3:     #A09A93;
+    --accent:     #1C1916;
+    --accent-fg:  #FFFFFF;
+    --green:      #2D7A4F;
+    --green-bg:   #EDF7F2;
+    --red:        #C0392B;
+    --red-bg:     #FDF2F0;
+    --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md:  0 4px 12px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.04);
+    --radius:     14px;
+    --sidebar-w:  220px;
+    --transition: 150ms cubic-bezier(.4,0,.2,1);
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-1);
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ─────────────────────────────────── */
+  .shell { display: flex; min-height: 100vh; }
+
+  /* ── Sidebar ─────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    transition: transform var(--transition);
+  }
+
+  .sidebar-logo {
+    padding: 26px 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    width: 30px; height: 30px;
+    background: var(--accent);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-mark svg { width: 14px; height: 14px; }
+  .logo-text { line-height: 1.2; }
+  .logo-name { font-size: 13px; font-weight: 600; color: var(--text-1); letter-spacing: -.01em; }
+  .logo-sub  { font-size: 10px; color: var(--text-3); letter-spacing: .03em; }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    transition: background var(--transition), color var(--transition);
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--bg); color: var(--text-1); }
+  .nav-item.active { background: var(--accent); color: var(--accent-fg); }
+  .nav-item.active svg { opacity: 1; }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: .7; }
+
+  .sidebar-footer {
+    padding: 10px 10px 18px;
+    border-top: 1px solid var(--border);
+  }
+  .sign-out-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-3);
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    transition: background var(--transition), color var(--transition);
+  }
+  .sign-out-btn:hover { background: var(--red-bg); color: var(--red); }
+  .sign-out-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* ── Mobile bar ───────────────────────────────── */
+  .mobile-bar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 90;
+  }
+  .mobile-bar .logo-name { font-size: 14px; font-weight: 600; }
+  .hamburger {
+    background: none; border: none; cursor: pointer;
+    padding: 6px; border-radius: 8px;
+    color: var(--text-2);
+    display: flex; align-items: center;
+  }
+  .hamburger:hover { background: var(--bg); }
+  .overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.18);
+    backdrop-filter: blur(2px);
+    z-index: 99;
+  }
+  .overlay.active { display: block; }
+
+  /* ── Main content ─────────────────────────────── */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-height: 100vh;
+    padding: 40px 28px 60px;
+    max-width: calc(var(--sidebar-w) + 780px);
+  }
+  .content-inner { max-width: 680px; }
+
+  /* ── Page header ─────────────────────────────── */
+  .page-header { margin-bottom: 28px; }
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--text-1);
+    letter-spacing: -.02em;
+    line-height: 1.2;
+  }
+  .page-sub { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+
+  /* ── Cards ───────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: fadeUp .3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card:nth-child(2) { animation-delay: .05s; }
+  .card:nth-child(3) { animation-delay: .1s; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    background: #FDFCFB;
+  }
+  .card-header-left { display: flex; align-items: center; gap: 11px; }
+  .card-icon {
+    width: 32px; height: 32px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .card-icon svg { width: 15px; height: 15px; color: var(--text-2); }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text-1); }
+  .card-sub   { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  .badge {
+    font-size: 11px; font-weight: 500;
+    color: var(--text-3);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+
+  .card-body { padding: 22px; }
+
+  /* ── Fields ──────────────────────────────────── */
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text-2);
+    margin-bottom: 7px;
+  }
+  .field-label svg { width: 12px; height: 12px; }
+  .field-hint { font-size: 11px; color: var(--text-3); margin-top: 5px; }
+
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--text-1);
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    outline: none;
+    resize: none;
+  }
+  input[type="text"]::placeholder, textarea::placeholder { color: var(--text-3); }
+  input[type="text"]:focus, textarea:focus {
+    border-color: var(--border-md);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px rgba(28,25,22,.06);
+  }
+
+  /* ── Service rows ────────────────────────────── */
+  .service-list { display: flex; flex-direction: column; gap: 9px; margin-bottom: 12px; }
+  .service-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    animation: slideIn .2s ease both;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-6px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .service-num {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-3);
+    width: 18px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .grip { color: var(--border-md); flex-shrink: 0; cursor: grab; }
+  .grip svg { width: 14px; height: 14px; display: block; }
+
+  /* ── FAQ rows ────────────────────────────────── */
+  .faq-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .faq-item {
+    border: 1.5px solid var(--border);
+    border-radius: 11px;
+    overflow: hidden;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    animation: slideIn .2s ease both;
+  }
+  .faq-item.open {
+    border-color: var(--border-md);
+    box-shadow: var(--shadow-sm);
+  }
+  .faq-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    background: #FAFAF8;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: background var(--transition);
+  }
+  .faq-header:hover { background: var(--bg); }
+  .faq-item.open .faq-header { background: #F5F3EF; }
+  .faq-q-num {
+    font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    color: var(--text-3); flex-shrink: 0;
+    background: var(--border); padding: 2px 6px; border-radius: 5px;
+  }
+  .faq-q-preview {
+    flex: 1; font-size: 13px; color: var(--text-2); font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .faq-q-preview.empty { color: var(--text-3); font-weight: 400; font-style: italic; }
+  .faq-chevron {
+    flex-shrink: 0; color: var(--text-3);
+    transition: transform var(--transition);
+  }
+  .faq-item.open .faq-chevron { transform: rotate(180deg); }
+  .faq-chevron svg { width: 14px; height: 14px; display: block; }
+  .faq-body {
+    padding: 14px 16px 16px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+  .faq-item.open .faq-body { display: block; }
+  .faq-body .field { margin-bottom: 12px; }
+
+  /* ── Delete btn ──────────────────────────────── */
+  .delete-btn {
+    flex-shrink: 0;
+    padding: 7px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-3);
+    display: flex; align-items: center;
+    transition: background var(--transition), color var(--transition);
+  }
+  .delete-btn:hover { background: var(--red-bg); color: var(--red); }
+  .delete-btn svg { width: 14px; height: 14px; }
+  .delete-btn:disabled { opacity: 0; pointer-events: none; }
+
+  /* ── Add btn ─────────────────────────────────── */
+  .add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    background: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition), color var(--transition);
+  }
+  .add-btn:hover { border-color: var(--border-md); background: var(--bg); color: var(--text-1); }
+  .add-btn svg { width: 14px; height: 14px; }
+
+  /* ── Save bar ────────────────────────────────── */
+  .save-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+  .save-confirm {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; font-weight: 500;
+    color: var(--green);
+    opacity: 0;
+    transition: opacity .4s ease;
+  }
+  .save-confirm.visible { opacity: 1; }
+  .save-confirm svg { width: 16px; height: 16px; }
+
+  .save-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 10px 22px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity var(--transition), transform var(--transition);
+    box-shadow: 0 1px 3px rgba(0,0,0,.15);
+  }
+  .save-btn:hover { opacity: .85; }
+  .save-btn:active { transform: scale(.98); }
+  .save-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .save-btn svg { width: 14px; height: 14px; }
+  .spin { animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Overview cards ──────────────────────────── */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 0;
+  }
+  .overview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 20px 18px 18px;
+    cursor: pointer;
+    transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
+    text-align: left;
+    width: 100%;
+    animation: fadeUp .3s ease both;
+  }
+  .overview-card:nth-child(2) { animation-delay: .05s; }
+  .overview-card:nth-child(3) { animation-delay: .1s; }
+  .overview-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-md);
+    transform: translateY(-1px);
+  }
+  .ov-label {
+    font-size: 10px; font-weight: 700; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--text-3); margin-bottom: 8px;
+  }
+  .ov-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px; color: var(--text-1);
+    line-height: 1; margin-bottom: 12px;
+  }
+  .ov-hint { font-size: 11px; color: var(--text-3); font-weight: 500; }
+  .overview-card:hover .ov-hint { color: var(--text-1); }
+
+  /* ── Sections visibility ─────────────────────── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── Bottom nav (mobile only) ─────────────────── */
+  .bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 0 4px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .bottom-nav-inner {
+    display: flex;
+    align-items: stretch;
+    height: 58px;
+  }
+  .bn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 4px;
+    border-radius: 10px;
+    color: var(--text-3);
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .01em;
+    transition: color var(--transition), background var(--transition);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bn-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .bn-item span { line-height: 1; }
+  .bn-item.active { color: var(--accent); }
+  .bn-item.active .bn-dot {
+    width: 4px; height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-top: 2px;
+  }
+
+  /* ── Responsive ──────────────────────────────── */
+  @media (max-width: 720px) {
+    /* Hide desktop sidebar, show bottom nav */
+    .sidebar        { display: none; }
+    .mobile-bar     { display: none; }
+    .overlay        { display: none !important; }
+    .bottom-nav     { display: block; }
+
+    /* Main fills full width, pad bottom for nav */
+    .main {
+      margin-left: 0;
+      padding: 28px 16px 90px;
+      max-width: 100%;
+    }
+
+    /* Typography — keep desktop scale feel */
+    .page-title { font-size: 24px; }
+    .page-header { margin-bottom: 22px; }
+
+    /* Cards — full bleed, same border radius */
+    .card { border-radius: 14px; }
+    .card-header { padding: 16px 18px; }
+    .card-body   { padding: 18px; }
+
+    /* Overview grid — 3 col on mobile too, just smaller */
+    .overview-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .overview-card {
+      padding: 14px 12px 12px;
+    }
+    .ov-value { font-size: 22px; margin-bottom: 8px; }
+    .ov-label { font-size: 9px; margin-bottom: 6px; }
+    .ov-hint  { font-size: 10px; }
+
+    /* Inputs — comfortable tap targets */
+    input[type="text"], textarea {
+      font-size: 16px; /* prevents iOS zoom */
+      padding: 12px 14px;
+    }
+
+    /* Service rows — inputs don't shrink weirdly */
+    .service-row { gap: 7px; }
+    .grip { display: none; } /* hide on mobile, no DnD */
+
+    /* Save bar — stack on very small */
+    .save-bar {
+      flex-direction: column-reverse;
+      align-items: stretch;
+      gap: 12px;
+    }
+    .save-btn {
+      width: 100%;
+      justify-content: center;
+      padding: 13px 22px;
+      font-size: 14px;
+    }
+    .save-confirm { justify-content: center; }
+
+    /* FAQ header tap area */
+    .faq-header { padding: 13px 14px; }
+  }
+
+  /* Very small phones */
+  @media (max-width: 380px) {
+    .overview-grid { gap: 8px; }
+    .overview-card { padding: 12px 10px 10px; }
+    .ov-value { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Overlay (mobile) -->
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l1.5 5h5.2l-4.2 3.1 1.6 5-4.1-3-4.1 3 1.6-5L5.3 8h5.2z"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <div class="logo-name">Recuria</div>
+        <div class="logo-sub">powered by Aidoe</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-section="dashboard" onclick="switchSection('dashboard', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-section="business" onclick="switchSection('business', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Business Info
+      </button>
+      <button class="nav-item" data-section="services" onclick="switchSection('services', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        Services
+      </button>
+      <button class="nav-item" data-section="faqs" onclick="switchSection('faqs', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        FAQs
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="sign-out-btn" onclick="alert('Sign out — connect to Supabase auth to enable.')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Mobile top bar ── -->
+  <div class="mobile-bar">
+    <button class="hamburger" onclick="openSidebar()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="logo-mark" style="width:24px;height:24px;border-radius:7px;">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 5h5.2l-4.2 3.1 1.6 5-4.1-3-4.1 3 1.6-5L5.3 8h5.2z"/></svg>
+    </div>
+    <div class="logo-name">Recuria</div>
+  </div>
+
+  <!-- ── Main ── -->
+  <main class="main">
+    <div class="content-inner">
+
+      <!-- ══ DASHBOARD OVERVIEW ══ -->
+      <div class="section active" id="section-dashboard">
+        <div class="page-header">
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-sub">Your workspace at a glance.</p>
+        </div>
+
+        <div class="overview-grid">
+          <button class="overview-card" onclick="switchSection('business')">
+            <div class="ov-label">Business Name</div>
+            <div class="ov-value" id="ov-name">—</div>
+            <div class="ov-hint">Edit info →</div>
+          </button>
+          <button class="overview-card" onclick="switchSection('services')">
+            <div class="ov-label">Services</div>
+            <div class="ov-value" id="ov-services">0</div>
+            <div class="ov-hint">Manage services →</div>
+          </button>
+          <button class="overview-card" onclick="switchSection('faqs')">
+            <div class="ov-label">FAQs</div>
+            <div class="ov-value" id="ov-faqs">0</div>
+            <div class="ov-hint">Edit FAQs →</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ BUSINESS INFO ══ -->
+      <div class="section" id="section-business">
+        <div class="page-header">
+          <h1 class="page-title">Business Information</h1>
+          <p class="page-sub">Update your core details shown to customers.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </div>
+              <div>
+                <div class="card-title">Business Information</div>
+                <div class="card-sub">Shown to customers & used by your chatbot</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="field">
+              <label class="field-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                Business Name
+              </label>
+              <input type="text" id="biz-name" placeholder="e.g. Bloom Wellness Studio" oninput="updateOverview()" />
+              <div class="field-hint">This will appear in customer interactions and your chatbot.</div>
+            </div>
+            <div class="field">
+              <label class="field-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Business Hours
+              </label>
+              <input type="text" id="biz-timings" placeholder="e.g. Mon–Fri 9am–6pm, Sat 10am–4pm" />
+              <div class="field-hint">Let customers know when you're open.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div class="save-confirm" id="confirm-business">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Changes saved successfully.
+          </div>
+          <button class="save-btn" onclick="saveSection('business')">
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ SERVICES ══ -->
+      <div class="section" id="section-services">
+        <div class="page-header">
+          <h1 class="page-title">Services</h1>
+          <p class="page-sub">List everything you offer.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+              </div>
+              <div>
+                <div class="card-title">Services</div>
+                <div class="card-sub">What do you offer?</div>
+              </div>
+            </div>
+            <div class="badge" id="services-count">0 added</div>
+          </div>
+          <div class="card-body">
+            <div class="service-list" id="service-list"></div>
+            <button class="add-btn" onclick="addService()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Service
+            </button>
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div class="save-confirm" id="confirm-services">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Changes saved successfully.
+          </div>
+          <button class="save-btn" onclick="saveSection('services')">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- ══ FAQs ══ -->
+      <div class="section" id="section-faqs">
+        <div class="page-header">
+          <h1 class="page-title">FAQs</h1>
+          <p class="page-sub">Help your chatbot answer common questions.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              </div>
+              <div>
+                <div class="card-title">FAQs</div>
+                <div class="card-sub">Common questions your chatbot can answer</div>
+              </div>
+            </div>
+            <div class="badge" id="faqs-count">0 questions</div>
+          </div>
+          <div class="card-body">
+            <div class="faq-list" id="faq-list"></div>
+            <button class="add-btn" onclick="addFaq()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add FAQ
+            </button>
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <div class="save-confirm" id="confirm-faqs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Changes saved successfully.
+          </div>
+          <button class="save-btn" onclick="saveSection('faqs')">Save Changes</button>
+        </div>
+      </div>
+
+    </div><!-- /content-inner -->
+  </main>
+
+  <!-- ── Bottom nav (mobile) ── -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bn-item active" data-bn="dashboard" onclick="switchSection('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Home</span>
+        <div class="bn-dot"></div>
+      </button>
+      <button class="bn-item" data-bn="business" onclick="switchSection('business')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Business</span>
+        <div class="bn-dot"></div>
+      </button>
+      <button class="bn-item" data-bn="services" onclick="switchSection('services')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        <span>Services</span>
+        <div class="bn-dot"></div>
+      </button>
+      <button class="bn-item" data-bn="faqs" onclick="switchSection('faqs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span>FAQs</span>
+        <div class="bn-dot"></div>
+      </button>
+    </div>
+  </nav>
+
+</div><!-- /shell -->
+
+<script>
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+const state = {
+  business: { name: '', timings: '' },
+  services: [''],
+  faqs: [{ question: '', answer: '' }]
+};
+
+const SERVICE_PLACEHOLDERS = [
+  'e.g. Hair Cut & Styling',
+  'e.g. Deep Tissue Massage',
+  'e.g. Facial Treatment',
+  'e.g. Nail Art & Manicure',
+  'e.g. Waxing & Threading',
+  'e.g. Custom Consultation'
+];
+
+/* ═══════════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════════ */
+function switchSection(id, btn) {
+  // Sections
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+
+  // Sidebar nav
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const sideBtn = document.querySelector(`.nav-item[data-section="${id}"]`);
+  if (sideBtn) sideBtn.classList.add('active');
+  else if (btn) btn.classList.add('active');
+
+  // Bottom nav
+  document.querySelectorAll('.bn-item').forEach(n => n.classList.remove('active'));
+  const bnBtn = document.querySelector(`.bn-item[data-bn="${id}"]`);
+  if (bnBtn) bnBtn.classList.add('active');
+
+  closeSidebar();
+  updateOverview();
+  updateCounts();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('active');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('active');
+}
+
+/* ═══════════════════════════════════════════════
+   SERVICES
+═══════════════════════════════════════════════ */
+function renderServices() {
+  const list = document.getElementById('service-list');
+  list.innerHTML = '';
+  state.services.forEach((val, i) => {
+    const row = document.createElement('div');
+    row.className = 'service-row';
+    row.innerHTML = `
+      <div class="grip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </div>
+      <span class="service-num">${i + 1}</span>
+      <input type="text" value="${escHtml(val)}"
+        placeholder="${SERVICE_PLACEHOLDERS[i % SERVICE_PLACEHOLDERS.length]}"
+        oninput="state.services[${i}] = this.value; updateCounts();" />
+      <button class="delete-btn" onclick="removeService(${i})" ${state.services.length === 1 ? 'disabled' : ''} title="Remove">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    `;
+    list.appendChild(row);
+  });
+  updateCounts();
+}
+
+function addService() {
+  state.services.push('');
+  renderServices();
+  // focus new input
+  const inputs = document.querySelectorAll('#service-list input');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+function removeService(i) {
+  if (state.services.length <= 1) return;
+  state.services.splice(i, 1);
+  renderServices();
+}
+
+/* ═══════════════════════════════════════════════
+   FAQS
+═══════════════════════════════════════════════ */
+let openFaqIndex = 0;
+
+function renderFaqs() {
+  const list = document.getElementById('faq-list');
+  list.innerHTML = '';
+  state.faqs.forEach((faq, i) => {
+    const isOpen = openFaqIndex === i;
+    const item = document.createElement('div');
+    item.className = 'faq-item' + (isOpen ? ' open' : '');
+    item.innerHTML = `
+      <button class="faq-header" onclick="toggleFaq(${i})">
+        <span class="faq-q-num">Q${i + 1}</span>
+        <span class="faq-q-preview ${faq.question.trim() ? '' : 'empty'}" id="faq-preview-${i}">
+          ${faq.question.trim() ? escHtml(faq.question) : 'Click to edit question…'}
+        </span>
+        <button class="delete-btn" onclick="event.stopPropagation(); removeFaq(${i})" ${state.faqs.length === 1 ? 'disabled' : ''} title="Remove">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <span class="faq-chevron">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </button>
+      <div class="faq-body">
+        <div class="field">
+          <label class="field-label">Question</label>
+          <input type="text" value="${escHtml(faq.question)}"
+            placeholder="e.g. Do you offer same-day appointments?"
+            oninput="state.faqs[${i}].question = this.value; updateFaqPreview(${i}, this.value);" />
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label class="field-label">Answer</label>
+          <textarea rows="3"
+            placeholder="e.g. Yes! We accept same-day bookings depending on availability."
+            oninput="state.faqs[${i}].answer = this.value;">${escHtml(faq.answer)}</textarea>
+        </div>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+  updateCounts();
+}
+
+function toggleFaq(i) {
+  openFaqIndex = openFaqIndex === i ? -1 : i;
+  renderFaqs();
+  if (openFaqIndex === i) {
+    // focus question field
+    const inputs = document.querySelectorAll(`#faq-list .faq-item:nth-child(${i + 1}) input`);
+    if (inputs.length) setTimeout(() => inputs[0].focus(), 50);
+  }
+}
+
+function updateFaqPreview(i, val) {
+  const el = document.getElementById('faq-preview-' + i);
+  if (!el) return;
+  if (val.trim()) {
+    el.textContent = val;
+    el.classList.remove('empty');
+  } else {
+    el.textContent = 'Click to edit question…';
+    el.classList.add('empty');
+  }
+  updateCounts();
+}
+
+function addFaq() {
+  state.faqs.push({ question: '', answer: '' });
+  openFaqIndex = state.faqs.length - 1;
+  renderFaqs();
+  setTimeout(() => {
+    const items = document.querySelectorAll('#faq-list .faq-item');
+    const last = items[items.length - 1];
+    if (last) last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const inputs = document.querySelectorAll(`#faq-list .faq-item:last-child input`);
+    if (inputs.length) inputs[0].focus();
+  }, 60);
+}
+
+function removeFaq(i) {
+  if (state.faqs.length <= 1) return;
+  state.faqs.splice(i, 1);
+  openFaqIndex = Math.min(openFaqIndex, state.faqs.length - 1);
+  renderFaqs();
+}
+
+/* ═══════════════════════════════════════════════
+   SAVE (localStorage as Supabase stand-in)
+═══════════════════════════════════════════════ */
+function saveSection(section) {
+  // Sync business fields from DOM
+  if (section === 'business') {
+    state.business.name    = document.getElementById('biz-name').value;
+    state.business.timings = document.getElementById('biz-timings').value;
+  }
+
+  // Persist to localStorage (swap for Supabase .update() in prod)
+  localStorage.setItem('recuria_data', JSON.stringify(state));
+  updateOverview();
+  updateCounts();
+
+  // Confirm toast
+  const el = document.getElementById('confirm-' + section);
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 3000);
+}
+
+/* ═══════════════════════════════════════════════
+   COUNTS + OVERVIEW
+═══════════════════════════════════════════════ */
+function updateCounts() {
+  const sCount = state.services.filter(s => s.trim()).length;
+  const fCount = state.faqs.filter(f => f.question.trim()).length;
+  document.getElementById('services-count').textContent = sCount + ' added';
+  document.getElementById('faqs-count').textContent = fCount + ' question' + (fCount !== 1 ? 's' : '');
+}
+
+function updateOverview() {
+  const name = document.getElementById('biz-name')?.value || state.business.name;
+  const sCount = state.services.filter(s => s.trim()).length;
+  const fCount = state.faqs.filter(f => f.question.trim()).length;
+  const ovName = document.getElementById('ov-name');
+  if (ovName) ovName.textContent = name.trim() || '—';
+  const ovS = document.getElementById('ov-services');
+  if (ovS) ovS.textContent = sCount;
+  const ovF = document.getElementById('ov-faqs');
+  if (ovF) ovF.textContent = fCount;
+}
+
+/* ═══════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════ */
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/* ═══════════════════════════════════════════════
+   INIT — load from localStorage
+═══════════════════════════════════════════════ */
+(function init() {
+  const saved = localStorage.getItem('recuria_data');
+  if (saved) {
+    try {
+      const d = JSON.parse(saved);
+      if (d.business) Object.assign(state.business, d.business);
+      if (d.services?.length) state.services = d.services;
+      if (d.faqs?.length)     state.faqs     = d.faqs;
+    } catch(e) {}
+  }
+
+  // Populate business fields
+  document.getElementById('biz-name').value    = state.business.name;
+  document.getElementById('biz-timings').value = state.business.timings;
+
+  renderServices();
+  renderFaqs();
+  updateOverview();
+  updateCounts();
+})();
+</script>
+</body>
+</html>
