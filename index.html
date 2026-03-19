@@ -780,9 +780,10 @@ sb.auth.getUser().then(({ data }) => {
   if (data?.user?.email) {
     ownerEmail = data.user.email;
     loadData();
+  } else {
+    window.location.href = 'https://loginpage-pearl-one.vercel.app';
   }
 });
-
 async function loadData() {
   const { data: biz } = await sb.from('businesses').select('*').eq('owner_email', ownerEmail).single();
   if (biz) {
