@@ -946,11 +946,13 @@ async function saveSection(section) {
   if (section === 'business') {
     state.business.name    = document.getElementById('biz-name').value;
     state.business.timings = document.getElementById('biz-timings').value;
-    await sb.from('businesses').upsert({
-      owner_email:   ownerEmail,
-      business_name: state.business.name,
-      address:       state.business.timings,
-    }, { onConflict: 'owner_email' });
+    const slug = state.business.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+await sb.from('businesses').upsert({
+  owner_email:   ownerEmail,
+  business_name: state.business.name,
+  address:       state.business.timings,
+  slug:          slug,
+}, { onConflict: 'owner_email' });
   }
 
   if (section === 'services') {
