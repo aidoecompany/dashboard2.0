@@ -972,7 +972,13 @@ await sb.from('businesses').upsert({
   updateCounts();
   const el = document.getElementById('confirm-' + section);
   el.classList.add('visible');
+if (section === 'business') {
+  const slug = state.business.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  el.innerHTML = '✓ Saved! Your bot URL: <a href="https://recuria-neww.vercel.app/' + slug + '" target="_blank" style="color:#1a7f50;text-decoration:underline;">recuria-neww.vercel.app/' + slug + '</a>';
+  setTimeout(function(){ el.classList.remove('visible'); }, 8000);
+} else {
   setTimeout(function(){ el.classList.remove('visible'); }, 3000);
+}
 }
 
 function signOut() {
