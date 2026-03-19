@@ -310,10 +310,13 @@ function escHtml(str) {
 }
 
 /* ═══════════════════════════════════════════════
+   /* ═══════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════ */
-renderServices();
-renderFaqs();
-updateOverview();
-updateCounts();
+document.addEventListener('DOMContentLoaded', () => {
+  renderServices();
+  renderFaqs();
+  updateOverview();
+  updateCounts();
+});
 </script>
