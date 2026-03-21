@@ -790,9 +790,25 @@ async function initAuth() {
   if (data?.user?.email) {
     ownerEmail = data.user.email;
     loadData();
+    startAccessCheck();
   } else {
     window.location.href = 'https://loginpage-pearl-one.vercel.app';
   }
+}
+
+async function checkAccess() {
+  const { data } = await sb.auth.getUser();
+  if (!data?.user?.email) return;
+  const { data: removed } = await sb.from('removed_users').select('email').eq('email', data.user.email).single();
+  if (removed) {
+    await sb.auth.signOut();
+    window.location.href = 'https://loginpage-pearl-one.vercel.app';
+  }
+}
+
+function startAccessCheck() {
+  checkAccess();
+  setInterval(checkAccess, 5000);
 }
 
 initAuth();
